@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance for Course Management</title>
+    <style>
+        body { font-family: Algerian , sans-serif; margin: 0; padding: 0; background-image: url('background.jpg'); background-size: cover; background-attachment: fixed; }
+        header { padding: 10px 0; text-align: center; }
+        .container { max-width: 960px; margin: 20px auto; padding: 20px; box-shadow: 0 5px 7px rgba(0, 0, 0, 0.1); }
+        h1, h2 { color: #faf2f2ec; }
+        input, select, button { width: 98%; padding: 9px; margin: 8px 0; }
+        table { width: 98%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #000200; color: white; }
+        button { background-color: #0c123f; color: white; cursor: pointer; }
+        button:hover { background-color: #249db8fc; }
+    </style>
+</head>
+<body>
+
+<header><h1>Attendance for Course Management</h1></header>
+
+<div class="container">
+    <h2>Mark Attendance</h2>
+    <form id="attendanceForm">
+        <input type="text" id="studentName" placeholder="Student Name" required>
+        <input type="text" id="studentId" placeholder="Student ID" required>
+        <input type="text" id="course" placeholder="Course" required>
+        <select id="status"><option value="Present">Present</option><option value="Absent">Absent</option></select>
+        <button type="submit">Submit</button>
+        <button type="button" onclick="saveToFile()">Save to File</button>
+    </form>
+
+    <h2>Attendance Record</h2>
+    <table><thead><tr><th>Name</th><th>ID</th><th>Course</th><th>Status</th><th>Date</th><th>Percentage</th></tr></thead>
+    <tbody id="attendanceTable"></tbody></table>
+</div>
+
+<script>
+    const attendanceData = {};
+
+    document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('studentName').value.trim(),
+              studentId = document.getElementById('studentId').value.trim(),
+              course = document.getElementById('course').value.trim(),
+              status = document.getElementById('status').value,
+              date = new Date().toLocaleDateString(),
+              key = studentId;
+
+        if (!attendanceData[key]) attendanceData[key] = { name, course, total: 0, present: 0 };
+        attendanceData[key].total++;
+        if (status === 'Present') attendanceData[key].present++;
+
+        const percentage = ((attendanceData[key].present / attendanceData[key].total) * 100).toFixed(2) + '%';
+        document.getElementById('attendanceTable').innerHTML += `<tr><td>${name}</td><td>${studentId}</td><td>${course}</td><td>${status}</td><td>${date}</td><td>${percentage}</td></tr>`;
+        document.getElementById('attendanceForm').reset();
+    });
+
+    function saveToFile() {
+    const header = "Name\tID\tCourse\tStatus\tDate\tPercentage\n";
+    const content = Object.values(attendanceData).map(student => {
+        const percentage = ((student.present / student.total) * 100).toFixed(2) + '%';
+        return `${student.name}\t${student.id}\t${student.course}\t${student.present}/${student.total}\t${percentage}`;
+    }).join("\n");
+    
+    const blob = new Blob([header + content], { type: "text/plain;charset=utf-8" });
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = "attendance_record.txt";
+    downloadLink.click();
+}
+</script>
+
+</body>
+</html>
